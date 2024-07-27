@@ -2,8 +2,10 @@ package eu.pb4.ansharpatch.pack;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.minecraft.SharedConstants;
 import net.minecraft.resource.*;
-import net.minecraft.resource.featuretoggle.FeatureSet;
+import net.minecraft.resource.metadata.PackResourceMetadata;
+import net.minecraft.resource.metadata.ResourceMetadataMap;
 import net.minecraft.resource.metadata.ResourceMetadataReader;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -16,7 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -25,15 +27,15 @@ public record LangPackProvider(ModContainer mod) implements ResourcePackProvider
 
     @Override
     public void register(Consumer<ResourcePackProfile> profileAdder) {
-        profileAdder.accept(ResourcePackProfile.of("$anshar-lang", Text.literal("Anshar Polymer Patch"),
-                true, this,
-                new ResourcePackProfile.Metadata(Text.literal("Lang Files"), ResourcePackCompatibility.COMPATIBLE, FeatureSet.empty(), List.of()),
-                ResourcePackProfile.InsertionPosition.BOTTOM, false, ResourcePackSource.BUILTIN
+        profileAdder.accept(ResourcePackProfile.create(getInfo(),
+                this,
+                ResourceType.SERVER_DATA,
+                new ResourcePackPosition(true, ResourcePackProfile.InsertionPosition.BOTTOM, false)
         ));
     }
 
     @Override
-    public ResourcePack open(String name) {
+    public ResourcePack open(ResourcePackInfo info) {
         return this;
     }
 
@@ -88,13 +90,18 @@ public record LangPackProvider(ModContainer mod) implements ResourcePackProvider
 
     @Nullable
     @Override
-    public <T> T parseMetadata(ResourceMetadataReader<T> metaReader) throws IOException {
-        return null;
+    public <T> T parseMetadata(ResourceMetadataReader<T> metaReader) {
+        return ResourceMetadataMap.of(PackResourceMetadata.SERIALIZER, new PackResourceMetadata(Text.literal("Lang Files"), SharedConstants.getGameVersion().getResourceVersion(ResourceType.SERVER_DATA), Optional.empty())).get(metaReader);
     }
 
     @Override
-    public String getName() {
-        return "$anshar-lang";
+    public ResourcePackInfo getInfo() {
+        return new ResourcePackInfo(
+                "$anshar-lang",
+                Text.literal("Anshar Polymer Patch"),
+                ResourcePackSource.BUILTIN,
+                Optional.empty()
+        );
     }
 
     @Override
@@ -104,7 +111,7 @@ public record LangPackProvider(ModContainer mod) implements ResourcePackProvider
 
 
     @Override
-    public ResourcePack openWithOverlays(String name, ResourcePackProfile.Metadata metadata) {
-        return open(name);
+    public ResourcePack openWithOverlays(ResourcePackInfo info, ResourcePackProfile.Metadata metadata) {
+        return open(info);
     }
 }

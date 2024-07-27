@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 @Mixin(ResourcePackManager.class)
@@ -20,7 +19,7 @@ public abstract class ResourcePackManagerMixin {
 	@Shadow
 	@Final
 	@Mutable
-	public Set<ResourcePackProvider> providers;
+    private Set<ResourcePackProvider> providers;
 
 	@Inject(method = "<init>", at = @At("RETURN"))
 	public void injectCustom(ResourcePackProvider[] resourcePackProviders, CallbackInfo info) {

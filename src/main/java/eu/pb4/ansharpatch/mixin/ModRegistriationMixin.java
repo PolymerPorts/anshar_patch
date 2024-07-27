@@ -2,6 +2,7 @@ package eu.pb4.ansharpatch.mixin;
 
 import com.lgmrszd.anshar.ModRegistration;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,8 +16,8 @@ public class ModRegistriationMixin {
         return entry;
     }
 
-    @Redirect(method = "registerAll", at = @At(value = "INVOKE", target = "Lnet/fabricmc/fabric/api/networking/v1/ServerPlayNetworking;registerGlobalReceiver(Lnet/minecraft/util/Identifier;Lnet/fabricmc/fabric/api/networking/v1/ServerPlayNetworking$PlayChannelHandler;)Z"))
-    private static boolean networkingBad(Identifier channelName, ServerPlayNetworking.PlayChannelHandler channelHandler) {
+    @Redirect(method = "registerAll", at = @At(value = "INVOKE", target = "Lnet/fabricmc/fabric/api/networking/v1/ServerPlayNetworking;registerGlobalReceiver(Lnet/minecraft/network/packet/CustomPayload$Id;Lnet/fabricmc/fabric/api/networking/v1/ServerPlayNetworking$PlayPayloadHandler;)Z"))
+    private static boolean networkingBad(CustomPayload.Id<?> type, ServerPlayNetworking.PlayPayloadHandler<?> handler) {
         return false;
     }
 }

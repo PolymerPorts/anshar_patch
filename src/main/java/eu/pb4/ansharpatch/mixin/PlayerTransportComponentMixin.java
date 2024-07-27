@@ -12,19 +12,19 @@ import eu.pb4.polymer.virtualentity.api.elements.BlockDisplayElement;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.FireworksComponent;
 import net.minecraft.entity.EntityStatuses;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.decoration.Brightness;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.FireworkRocketItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -37,7 +37,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.GameMode;
-import net.minecraft.world.explosion.Explosion;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
@@ -267,7 +266,7 @@ public abstract class PlayerTransportComponentMixin implements HolderAttachment 
         return (float) this.gateTicks / 230.0F;
     }
 
-    @Redirect(method = "moveToCurrentTarget", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;teleport(DDD)V"))
+    @Redirect(method = "moveToCurrentTarget", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;requestTeleport(DDD)V"))
     private void replaceTeleport(PlayerEntity instance, double x, double y, double z) {
         instance.setPos(x, y, z);
     }
@@ -278,19 +277,19 @@ public abstract class PlayerTransportComponentMixin implements HolderAttachment 
      */
     @Overwrite
     public void sendExplosionPacketS2C(boolean skipOurselves, BlockPos pos, int color) {
-        var list = new ArrayList<Packet<ClientPlayPacketListener>>();
+        var list = new ArrayList<Packet<? super ClientPlayPacketListener>>();
         var id = VirtualEntityUtils.requestEntityId();
         list.add(new EntitySpawnS2CPacket(id, UUID.randomUUID(),
                 pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 0, 0, EntityType.FIREWORK_ROCKET, 0, Vec3d.ZERO, 0));
 
         {
             var stack = new ItemStack(Items.FIREWORK_ROCKET);
-            stack.getOrCreateNbt().put(FireworkRocketItem.FIREWORKS_KEY, TransportEffects.makeTransportFirework(color));
+            stack.set(DataComponentTypes.FIREWORKS, new FireworksComponent(0, TransportEffects.makeTransportFirework(color)));
             list.add(new EntityTrackerUpdateS2CPacket(id, List.of(DataTracker.SerializedEntry.of(FireworkRocketEntityAccessor.getITEM(), stack))));
         }
         {
             var x = PolymerCommonUtils.createUnsafe(EntityStatusS2CPacket.class);
-            ((EntityStatusS2CPacketAccessor) x).setId(id);
+            ((EntityStatusS2CPacketAccessor) x).setEntityId(id);
             ((EntityStatusS2CPacketAccessor) x).setStatus(EntityStatuses.EXPLODE_FIREWORK_CLIENT);
             list.add(x);
         }

@@ -1,8 +1,6 @@
 package eu.pb4.ansharpatch.mixin;
 
 import com.lgmrszd.anshar.transport.PlayerTransportComponent;
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
